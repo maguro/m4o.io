@@ -2,3 +2,8 @@
 import_path = "m4o.io/pbf"
 vcs = "git"
 vcs_path = "https://github.com/maguro"
+
+[[vanity]]
+import_path = "m4o.io/aws-s3"
+vcs = "git"
+vcs_path = "https://github.com/maguro"
