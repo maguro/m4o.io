@@ -12,3 +12,8 @@ vcs_path = "https://github.com/maguro"
 import_path = "m4o.io/bugs"
 vcs = "git"
 vcs_path = "https://github.com/maguro"
+
+[[vanity]]
+import_path = "m4o.io/joincontext"
+vcs = "git"
+vcs_path = "https://github.com/maguro"
