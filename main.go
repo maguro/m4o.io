@@ -11,7 +11,6 @@ import (
 
 	"github.com/golang/glog"
 	"l7e.io/vanity"
-	"l7e.io/vanity/cmd/vanity/cli/backends"
 	"l7e.io/vanity/cmd/vanity/server/interceptors"
 	"l7e.io/vanity/pkg/toml"
 	"l7e.io/yama"
@@ -61,7 +60,7 @@ func main() {
 	watcher := yama.NewWatcher(
 		yama.WatchingSignals(syscall.SIGINT, syscall.SIGTERM),
 		yama.WithTimeout(2*time.Second), // nolint
-		yama.WithClosers(backends.Backend, s))
+		yama.WithClosers(s))
 
 	if err := s.ListenAndServe(); err != http.ErrServerClosed {
 		glog.Error(err)
