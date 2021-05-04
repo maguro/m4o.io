@@ -29,6 +29,11 @@ vcs = "git"
 vcs_path = "https://github.com/maguro"
 
 [[vanity]]
+import_path = "m4o.io/quaternions"
+vcs = "git"
+vcs_path = "https://github.com/maguro"
+
+[[vanity]]
 import_path = "m4o.io/yoko-is-lovely"
 vcs = "git"
 vcs_path = "https://github.com/maguro"
