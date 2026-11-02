@@ -462,7 +462,6 @@ honnef.co/go/tools v0.0.1-2019.2.3/go.mod h1:a3bituU0lyd329TUQxRnasdCoJDkEUEAqEt
 honnef.co/go/tools v0.0.1-2020.1.4/go.mod h1:X/FiERA/W4tHapMX5mGpAtMSVEeEUOyHaw9vFzvIQ3k=
 l7e.io/vanity v0.4.0 h1:dTByLWXIFmIKiA0kkWixSSzn2so0L/52PTDy2IXrhCg=
 l7e.io/vanity v0.4.0/go.mod h1:wc46Im8GW5HsSi4/DTxoXic9hHloHKOM4Cwuh9tUrDk=
-l7e.io/yama v0.2.0 h1:ATa2Xy7X0iS/ZrKaQ0de9Rusx+2Sssmp90Kd1n6J3bY=
 l7e.io/yama v0.2.0/go.mod h1:k3iQUAO++m90E4JtZwE9Uwitdcdvh3+ohC1rfoX+nYM=
 m4o.io/gslog v1.0.0 h1:EAVnXhgWDjCZgHTf9BW+fw2L2XnuLL6Hfn5Sqpk3Qs8=
 m4o.io/gslog v1.0.0/go.mod h1:mpg6PUUa8cEUaoM65Ca8ho6f46ATcPpbB8rtrVq7H1s=

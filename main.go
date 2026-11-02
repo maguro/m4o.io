@@ -5,17 +5,18 @@ package main
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log/slog"
 	"net/http"
 	"os"
+	"os/signal"
 	"syscall"
 	"time"
 
 	"l7e.io/vanity"
 	"l7e.io/vanity/cmd/vanity/server/interceptors"
 	"l7e.io/vanity/pkg/toml"
-	"l7e.io/yama"
 	"m4o.io/gslog"
 	"m4o.io/gslog/stdout"
 )
@@ -25,8 +26,8 @@ const (
 	// request. It stops a client that sends the headers slowly.
 	readHeaderTimeout = 10 * time.Second
 
-	// shutdownTimeout is the time that the server gets to close itself after a
-	// signal to stop.
+	// shutdownTimeout is the time that the server gets to serve its open
+	// requests after a signal to stop.
 	shutdownTimeout = 2 * time.Second
 )
 
@@ -91,17 +92,32 @@ func main() {
 		ReadHeaderTimeout: readHeaderTimeout,
 	}
 
-	watcher := yama.NewWatcher(
-		yama.WatchingSignals(syscall.SIGINT, syscall.SIGTERM),
-		yama.WithTimeout(shutdownTimeout),
-		yama.WithClosers(s))
+	signalCtx, stopNotify := signal.NotifyContext(ctx, syscall.SIGINT, syscall.SIGTERM)
 
-	if err := s.ListenAndServe(); err != http.ErrServerClosed {
+	idle := make(chan struct{})
+
+	go func() {
+		defer close(idle)
+
+		<-signalCtx.Done()
+
+		// The server must not use a context that the signal canceled. It
+		// needs the time to serve the requests that are open.
+		stopCtx, cancel := context.WithTimeout(context.Background(), shutdownTimeout)
+		defer cancel()
+
+		if stopErr := s.Shutdown(stopCtx); stopErr != nil {
+			slog.WarnContext(ctx, "Unable to stop the server", slog.Any("error", stopErr))
+		}
+	}()
+
+	err = s.ListenAndServe()
+	if !errors.Is(err, http.ErrServerClosed) {
+		stopNotify()
 		slog.ErrorContext(ctx, "Unable to serve", slog.Any("error", err))
-		_ = watcher.Close()
+		os.Exit(1)
 	}
 
-	if err := watcher.Wait(); err != nil {
-		slog.WarnContext(ctx, "Shutdown error", slog.Any("error", err))
-	}
+	<-idle
+	stopNotify()
 }

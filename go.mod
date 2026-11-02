@@ -4,7 +4,6 @@ go 1.26.0
 
 require (
 	l7e.io/vanity v0.4.0
-	l7e.io/yama v0.2.0
 	m4o.io/gslog v1.0.0
 )
 
