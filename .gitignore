@@ -15,3 +15,6 @@ server
 
 # Dependency directories (remove the comment below to include it)
 # vendor/
+
+# Pinned tools installed by the Makefile
+.cache/

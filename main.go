@@ -1,3 +1,6 @@
+// Copyright the original author or authors
+// SPDX-License-Identifier: Apache-2.0
+
 package main
 
 import (
@@ -15,6 +18,16 @@ import (
 	"l7e.io/yama"
 	"m4o.io/gslog"
 	"m4o.io/gslog/stdout"
+)
+
+const (
+	// readHeaderTimeout is the time that the server waits for the headers of a
+	// request. It stops a client that sends the headers slowly.
+	readHeaderTimeout = 10 * time.Second
+
+	// shutdownTimeout is the time that the server gets to close itself after a
+	// signal to stop.
+	shutdownTimeout = 2 * time.Second
 )
 
 func main() {
@@ -72,11 +85,15 @@ func main() {
 	mux := http.NewServeMux()
 	mux.Handle("/", interceptors.WrapHandler(vanity.NewVanityHandler(be)))
 
-	s := &http.Server{Addr: addr, Handler: mux}
+	s := &http.Server{
+		Addr:              addr,
+		Handler:           mux,
+		ReadHeaderTimeout: readHeaderTimeout,
+	}
 
 	watcher := yama.NewWatcher(
 		yama.WatchingSignals(syscall.SIGINT, syscall.SIGTERM),
-		yama.WithTimeout(2*time.Second), // nolint
+		yama.WithTimeout(shutdownTimeout),
 		yama.WithClosers(s))
 
 	if err := s.ListenAndServe(); err != http.ErrServerClosed {

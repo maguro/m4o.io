@@ -30,33 +30,25 @@ holds the request handling.
 
 ## Commands
 
-This repo has no Makefile. Use the Go tools directly.
+- Build: `make build`
+- Unit tests, with the race detector: `make test`
+- Coverage: `make coverage`
+- Lint: `make lint`
+- Format: `make fmt`
+- Format check: `make check-fmt`
+- Vulnerability scan: `make vuln`
+- Tidy modules: `make tidy`
+- Gate target: `make check`
+- CI target, the gate and coverage: `make ci`
 
-- Format: `gofmt -w .`
-- Format check: `gofmt -l .`, which prints nothing when the tree is clean
-- Build: `go build ./...`
-- Vet: `go vet ./...`
-- Unit tests, with the race detector: `go test -race ./...`
-- Lint: `golangci-lint run ./...`
-- Vulnerability scan: `go run golang.org/x/vuln/cmd/govulncheck@latest ./...`
-- Tidy modules: `go mod tidy`
-- Tidy check: `go mod tidy -diff`
-
-There is no `.golangci.yml`, so `golangci-lint` runs with its default linters.
+`make check` runs `test`, `lint`, and `check-fmt`. The lint and format targets
+install the pinned `golangci-lint` into `.cache/`, which `.gitignore` excludes.
+`.golangci.yml` holds the linter set and the import grouping of this module.
 
 ### Gate
 
-A change that touches code is not done until each of these passes in the
-working tree:
-
-```sh
-gofmt -l .
-go build ./...
-go vet ./...
-go test -race ./...
-golangci-lint run ./...
-go mod tidy -diff
-```
+A change that touches code is not done until `make check` passes in the
+working tree.
 
 ## Compatibility surface
 
@@ -74,5 +66,5 @@ without the same care:
 ## Continuous integration
 
 This repo has no GitHub Actions workflow. `.travis.yml` is present, but it
-builds Go 1.11 to 1.14, which `go.mod` no longer permits. Treat the gate above
-as the only check, and run it by hand.
+builds Go 1.11 to 1.14, which `go.mod` no longer permits. Run `make check` by
+hand until a workflow replaces it.
