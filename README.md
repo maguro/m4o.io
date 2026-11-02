@@ -39,30 +39,39 @@ The server runs as the Cloud Run service `m4o-vanity` in the
 
 Image: `gcr.io/github-maguro-infrastructure/vanity`
 
+Releases are tagged. Build from a tag, and give the image the same tag, so
+that a running revision identifies the source it came from.
+
+Check out the release and set the version for the commands that follow.
+
+```bash
+git checkout v1.8.2 && VERSION=v1.8.2
+```
+
 Build the image. Use `--platform linux/amd64` on an Apple silicon machine,
 because Cloud Run does not start an arm64 image.
 
 ```bash
-docker build --platform linux/amd64 -t gcr.io/github-maguro-infrastructure/vanity:latest .
+docker build --platform linux/amd64 -t gcr.io/github-maguro-infrastructure/vanity:${VERSION} .
 ```
 
 Push the image.
 
 ```bash
-docker push gcr.io/github-maguro-infrastructure/vanity:latest
+docker push gcr.io/github-maguro-infrastructure/vanity:${VERSION}
 ```
 
 Deploy the new image to the service.
 
 ```bash
 gcloud run deploy m4o-vanity \
-  --image gcr.io/github-maguro-infrastructure/vanity:latest \
+  --image gcr.io/github-maguro-infrastructure/vanity:${VERSION} \
   --region us-central1 \
   --project github-maguro-infrastructure
 ```
 
 The image contains `config.toml`, so a change to the import paths needs a new
-build and a new deployment.
+tag, a new build, and a new deployment.
 
 Verify a deployment with a direct request.
 
