@@ -2,22 +2,33 @@ package main
 
 import (
 	"context"
-	"flag"
 	"fmt"
+	"log/slog"
 	"net/http"
 	"os"
 	"syscall"
 	"time"
 
-	"github.com/golang/glog"
 	"l7e.io/vanity"
 	"l7e.io/vanity/cmd/vanity/server/interceptors"
 	"l7e.io/vanity/pkg/toml"
 	"l7e.io/yama"
+	"m4o.io/gslog"
+	"m4o.io/gslog/stdout"
 )
 
 func main() {
-	flag.Parse()
+	handler := stdout.NewHandler(os.Stdout, gslog.WithLogLevelFromEnvVar("LOG_LEVEL"))
+	slog.SetDefault(slog.New(handler))
+
+	ctx := context.Background()
+
+	// The library sends its request failures and each served import path
+	// through one logger, at one severity. Debug keeps the served paths out
+	// of the error stream.
+	vanity.SetLogger(vanity.LoggerFunc(func(format string, v ...interface{}) {
+		slog.DebugContext(ctx, fmt.Sprintf(format, v...))
+	}))
 
 	port := os.Getenv("PORT")
 	if port == "" {
@@ -25,31 +36,37 @@ func main() {
 	}
 
 	addr := fmt.Sprintf(":%s", port)
-	glog.Infof("port configured to listen to %s", addr)
+	slog.InfoContext(ctx, "Port configured", slog.String("addr", addr))
 
 	file := os.Getenv("TOML_FILE")
 	if file == "" {
 		file = "/var/vanity/config.toml"
 	}
-	glog.Infof("TOML file location %s", file)
+	slog.InfoContext(ctx, "TOML file location", slog.String("file", file))
 
 	table := os.Getenv("TOML_TABLE")
 	if table == "" {
 		table = "vanity"
 	}
-	glog.Infof("TOML table name %s", table)
+	slog.InfoContext(ctx, "TOML table name", slog.String("table", table))
 
 	be, err := toml.NewTOMLBackend(toml.InTable(table), toml.FromFile(file))
 	if err != nil {
-		glog.Fatal(err)
+		slog.ErrorContext(ctx, "Unable to read the vanity entries", slog.Any("error", err))
+		os.Exit(1)
 	}
 
-	glog.Info("Vanity entries:")
-	err = be.List(context.Background(), vanity.ConsumerFunc(func(context context.Context, importPath, vcs, vcsPath string) {
-		glog.Infof("  %s %s %s", importPath, vcs, vcsPath)
-	}))
+	consumer := vanity.ConsumerFunc(func(ctx context.Context, importPath, vcs, vcsPath string) {
+		slog.InfoContext(ctx, "Vanity entry",
+			slog.String("importPath", importPath),
+			slog.String("vcs", vcs),
+			slog.String("vcsPath", vcsPath))
+	})
+
+	err = be.List(ctx, consumer)
 	if err != nil {
-		glog.Fatal(err)
+		slog.ErrorContext(ctx, "Unable to list the vanity entries", slog.Any("error", err))
+		os.Exit(1)
 	}
 
 	mux := http.NewServeMux()
@@ -63,11 +80,11 @@ func main() {
 		yama.WithClosers(s))
 
 	if err := s.ListenAndServe(); err != http.ErrServerClosed {
-		glog.Error(err)
+		slog.ErrorContext(ctx, "Unable to serve", slog.Any("error", err))
 		_ = watcher.Close()
 	}
 
 	if err := watcher.Wait(); err != nil {
-		glog.Warningf("Shutdown error: %s", err)
+		slog.WarnContext(ctx, "Shutdown error", slog.Any("error", err))
 	}
 }
