@@ -37,13 +37,6 @@ func main() {
 
 	ctx := context.Background()
 
-	// The library sends its request failures and each served import path
-	// through one logger, at one severity. Debug keeps the served paths out
-	// of the error stream.
-	vanity.SetLogger(vanity.LoggerFunc(func(format string, v ...interface{}) {
-		slog.DebugContext(ctx, fmt.Sprintf(format, v...))
-	}))
-
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = "8080"
